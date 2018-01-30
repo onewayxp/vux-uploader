@@ -16,7 +16,7 @@
           <ul class="weui-uploader__files">
             <uploader-item v-for="image in images" :background-image="image.url" :key="image.url" @click.native="preview(image)"></uploader-item>
           </ul>
-          
+
           <div v-show="!readonly && images.length < max" class="weui-uploader__input-box" @click="add">
             <input v-if="!handleClick" ref="input" class="weui-uploader__input" type="file" accept="image/jpg,image/jpeg,image/png,image/gif" :capture="showCapture" @change="change">
           </div>
@@ -69,6 +69,10 @@ export default {
       type: String,
       default: ''
     },
+    actionUrl: {
+      type: String,
+      default: ''
+    },
     size: {
       type: String,
       default: 'normal'
@@ -110,7 +114,11 @@ export default {
       }
 
       let formData = new window.FormData()
-      formData.append('img', this.$refs.input.files[0])
+      formData.append('file', this.$refs.input.files[0])
+
+      console.log("actionUrl:",this.actionUrl)
+      console.log("self.params:",this.params)
+
       if (this.params) {
         for( let key in this.params) {
           formData.append(key, this.params[key])
@@ -131,8 +139,10 @@ export default {
           if (this.$vux && this.$vux.loading) {
             this.$vux.loading.hide()
           }
+
           this.$refs.input.value = ''
-          this.images.push(response.data.data)
+          console.log('response.data',this.actionUrl + response.data.hash)
+          this.images.push({url: this.actionUrl + response.data.hash})
         })
       } else {
         this.$emit('upload-image', formData)
