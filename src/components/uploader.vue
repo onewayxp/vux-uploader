@@ -10,7 +10,7 @@
         </div>
 
         <div class="weui-uploader__bd" :class="{small: size === 'small'}">
-          <div v-show="!readonly && images.length > 0" class="weui-uploader__input-box remove" @click="remove">
+          <div v-show="!readonly && images.length > 0" @click="remove">
           </div>
 
           <ul class="weui-uploader__files">
@@ -18,7 +18,7 @@
           </ul>
 
           <div v-show="!readonly && images.length < max" class="weui-uploader__input-box" @click="add">
-            <input v-if="!handleClick" ref="input" class="weui-uploader__input" type="file" accept="image/jpg,image/jpeg,image/png,image/gif" :capture="showCapture" @change="change">
+            <input v-if="!handleClick" ref="input" class="weui-uploader__input" type="file" accept="image/jpg,image/jpeg,image/png,image/gif" :capture="showCapture" @change="change($refs.input)">
           </div>
         </div>
       </div>
@@ -89,6 +89,14 @@ export default {
   components: {
     UploaderItem
   },
+  mounted() {
+      this.$nextTick(function () {
+        this.$on('changeuploader', function () {
+          this.change(this.$refs.input);
+          console.log('1111')
+        })
+      })
+  },
   methods: {
     add () {
       if (this.handleClick) {
@@ -108,15 +116,13 @@ export default {
       this.$emit('preview', image)
     },
     // 适用于action的情况
-    change () {
+    change (input) {
       if (this.handleClick) {
         return
       }
 
       let formData = new window.FormData()
-      formData.append('file', this.$refs.input.files[0])
-
-      console.log("actionUrl:",this.actionUrl)
+      formData.append('file', input.files[0])
       console.log("self.params:",this.params)
 
       if (this.params) {
@@ -139,10 +145,12 @@ export default {
           if (this.$vux && this.$vux.loading) {
             this.$vux.loading.hide()
           }
-
           this.$refs.input.value = ''
-          console.log('response.data',this.actionUrl + response.data.hash)
-          this.images.push({url: this.actionUrl + response.data.hash})
+          console.log('response.data',this.actionUrl + response.data.key)
+          var startTime = new Date().getTime();
+          this.params.key = startTime
+          this.images.push({url: this.actionUrl + response.data.key})
+          console.log('this.images', this.images)
         })
       } else {
         this.$emit('upload-image', formData)
